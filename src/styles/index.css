@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/* Bambu-inspired dark theme tokens. Custom colors become utilities, e.g.
+   `bg-bambu-500`, `text-ink-300`, `border-panel-700`. The default Tailwind
+   palette (zinc/slate/red/amber...) is still available alongside these. */
+@theme {
+  /* Bambu Lab green accent */
+  --color-bambu-300: #5ef39a;
+  --color-bambu-400: #34e07f;
+  --color-bambu-500: #16c563;
+  --color-bambu-600: #0ea152;
+  --color-bambu-700: #0c7f43;
+
+  /* Dark slate "ink" surface scale (bg -> panels -> borders -> text) */
+  --color-ink-950: #0a0e12;
+  --color-ink-900: #0f151b;
+  --color-ink-850: #141c24;
+  --color-ink-800: #1a242e;
+  --color-ink-700: #243140;
+  --color-ink-600: #33455a;
+  --color-ink-400: #7e93a8;
+  --color-ink-300: #a7b7c8;
+  --color-ink-200: #cdd8e3;
+  --color-ink-100: #e8eef4;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	background-color: var(--color-ink-950);
+	color: var(--color-ink-100);
+	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
+	/* Respect device safe areas (iPhone notch / home indicator). */
+	padding: env(safe-area-inset-top) env(safe-area-inset-right)
+		env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Thin, dark scrollbars to match the theme. */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-ink-700) transparent;
+}
+
+@keyframes pulse-ring {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.45;
+	}
+}
+.animate-pulse-ring {
+	animation: pulse-ring 1.8s ease-in-out infinite;
+}

@@ -1,0 +1,46 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+	"files": {
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/node_modules",
+			"!**/.carson",
+			"!**/*.css"
+		]
+	},
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"trailingCommas": "all"
+		}
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"a11y": "off",
+			"style": {
+				"useBlockStatements": "error"
+			},
+			"nursery": {
+				"useSortedClasses": {
+					"level": "warn",
+					"options": {
+						"functions": ["cn"]
+					}
+				}
+			}
+		}
+	}
+}
