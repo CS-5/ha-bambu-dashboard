@@ -1,8 +1,9 @@
+import { Lightbulb } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/cn";
 import { entityIdForRole } from "@/lib/gating";
 import { toggleLight, useCallService, useEnt } from "@/lib/ha";
 import type { Printer } from "@/lib/types";
-import { LightIcon } from "./icons";
 
 /** Chamber light on/off row (entity is onoff-only on the H2D). */
 export function LightToggle({ printer }: { printer: Printer }) {
@@ -20,28 +21,16 @@ export function LightToggle({ printer }: { printer: Printer }) {
 		<div className="flex items-center justify-between gap-3 px-1 py-2">
 			<span className="flex items-center gap-2.5 font-medium text-ink-200 text-sm">
 				<span className={cn("text-lg", on ? "text-bambu-400" : "text-ink-400")}>
-					<LightIcon />
+					<Lightbulb />
 				</span>
 				Chamber Light
 			</span>
-			<button
-				type="button"
-				role="switch"
-				aria-checked={on}
+			<Switch
+				checked={on}
 				disabled={disabled}
-				onClick={() => id && toggleLight(call, id)}
-				className={cn(
-					"relative h-7 w-12 shrink-0 rounded-full border transition-colors disabled:opacity-40",
-					on ? "border-bambu-500 bg-bambu-600/70" : "border-ink-700 bg-ink-800",
-				)}
-			>
-				<span
-					className={cn(
-						"absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all",
-						on ? "left-[1.45rem]" : "left-0.5",
-					)}
-				/>
-			</button>
+				onCheckedChange={() => toggleLight(call, id)}
+				aria-label="Chamber light"
+			/>
 		</div>
 	);
 }

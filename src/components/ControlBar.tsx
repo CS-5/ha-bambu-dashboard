@@ -1,47 +1,35 @@
+import { Pause, Play, Square, X } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
-import { cn } from "@/lib/cn";
+import { Button } from "@/components/ui/button";
 import { entityIdForRole } from "@/lib/gating";
 import { pressButton, useCallService, useEnt } from "@/lib/ha";
 import type { EntityRole, Printer } from "@/lib/types";
-import { PauseIcon, PlayIcon, StopIcon } from "./icons";
 
-type Tone = "primary" | "neutral" | "danger";
+type Variant = "default" | "secondary" | "destructive";
 
 function ActionButton({
 	icon,
 	label,
-	tone,
+	variant,
 	disabled,
 	onClick,
 }: {
 	icon: ReactNode;
 	label: string;
-	tone: Tone;
+	variant: Variant;
 	disabled?: boolean;
 	onClick: () => void;
 }) {
-	const tones: Record<Tone, string> = {
-		primary:
-			"border-bambu-500/40 bg-bambu-600/20 text-bambu-300 hover:bg-bambu-600/30 active:bg-bambu-600/40",
-		neutral:
-			"border-ink-700 bg-ink-850 text-ink-200 hover:bg-ink-800 active:bg-ink-700",
-		danger:
-			"border-red-600/40 bg-red-600/15 text-red-300 hover:bg-red-600/25 active:bg-red-600/35",
-	};
 	return (
-		<button
-			type="button"
+		<Button
+			variant={variant}
 			disabled={disabled}
 			onClick={onClick}
-			className={cn(
-				"flex h-14 flex-1 items-center justify-center gap-2 rounded-xl border font-semibold text-sm transition-colors",
-				"disabled:cursor-not-allowed disabled:border-ink-800 disabled:bg-ink-900 disabled:text-ink-600",
-				tones[tone],
-			)}
+			className="flex-1 text-sm"
 		>
-			<span className="text-lg">{icon}</span>
+			{icon}
 			{label}
-		</button>
+		</Button>
 	);
 }
 
@@ -73,44 +61,61 @@ export function ControlBar({ printer }: { printer: Printer }) {
 		return null;
 	}
 
-	const handleStop = () => {
-		if (!confirmStop) {
-			setConfirmStop(true);
-			return;
-		}
-		setConfirmStop(false);
-		if (stop.id) {
-			pressButton(call, stop.id);
-		}
-	};
+	// Stopping is destructive, so it takes a deliberate two-step confirmation:
+	// the transport row is replaced by an explicit "Cancel / Stop print" prompt
+	// (which auto-dismisses after a few seconds).
+	if (confirmStop && stop.id) {
+		return (
+			<div className="flex items-stretch gap-2.5">
+				<ActionButton
+					icon={<X />}
+					label="Cancel"
+					variant="secondary"
+					onClick={() => setConfirmStop(false)}
+				/>
+				<ActionButton
+					icon={<Square />}
+					label="Stop print?"
+					variant="destructive"
+					disabled={!stop.available}
+					onClick={() => {
+						setConfirmStop(false);
+						if (stop.id) {
+							pressButton(call, stop.id);
+						}
+					}}
+				/>
+			</div>
+		);
+	}
 
 	return (
 		<div className="flex items-stretch gap-2.5">
-			{pause.id && (
-				<ActionButton
-					icon={<PauseIcon />}
-					label="Pause"
-					tone="neutral"
-					disabled={!pause.available}
-					onClick={() => pause.id && pressButton(call, pause.id)}
-				/>
-			)}
 			{resume.id && (
 				<ActionButton
-					icon={<PlayIcon />}
+					icon={<Play />}
 					label="Resume"
-					tone="primary"
+					variant="default"
 					disabled={!resume.available}
 					onClick={() => resume.id && pressButton(call, resume.id)}
 				/>
 			)}
+			{pause.id && (
+				<ActionButton
+					icon={<Pause />}
+					label="Pause"
+					variant="secondary"
+					disabled={!pause.available}
+					onClick={() => pause.id && pressButton(call, pause.id)}
+				/>
+			)}
 			{stop.id && (
 				<ActionButton
-					icon={<StopIcon />}
-					label={confirmStop ? "Confirm Stop" : "Stop"}
-					tone="danger"
+					icon={<Square />}
+					label="Stop"
+					variant="destructive"
 					disabled={!stop.available}
-					onClick={handleStop}
+					onClick={() => setConfirmStop(true)}
 				/>
 			)}
 		</div>

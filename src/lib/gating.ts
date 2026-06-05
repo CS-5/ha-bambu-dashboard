@@ -1,4 +1,4 @@
-import type { EntityRole, Printer } from "./types";
+import type { EntityRole, Printer } from "@/lib/types";
 
 /** The single control-gating rule: a role is usable only if its entity was
  *  resolved (present + enabled in the registry) AND is not hidden. Hiding or

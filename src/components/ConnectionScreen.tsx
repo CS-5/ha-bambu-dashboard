@@ -1,4 +1,4 @@
-import { PrinterIcon } from "./icons";
+import { Box } from "lucide-react";
 
 /** Full-screen state shown while connecting to HA or when nothing is found. */
 export function ConnectionScreen({
@@ -11,7 +11,7 @@ export function ConnectionScreen({
 	return (
 		<div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-ink-950 px-6 text-center">
 			<div className="flex h-16 w-16 animate-pulse-ring items-center justify-center rounded-2xl border border-ink-800 bg-ink-900 text-3xl text-bambu-400">
-				<PrinterIcon />
+				<Box />
 			</div>
 			<div>
 				<p className="font-medium text-base text-ink-100">{message}</p>

@@ -1,13 +1,13 @@
+import { Card } from "@/components/Card";
+import { ControlBar } from "@/components/ControlBar";
+import { LightToggle } from "@/components/LightToggle";
+import { ProgressRing } from "@/components/ProgressRing";
+import { SpeedProfileSelect } from "@/components/SpeedProfileSelect";
 import { cn } from "@/lib/cn";
 import { isMissing } from "@/lib/format";
 import { entityIdForRole, printerHasRole } from "@/lib/gating";
 import { useEnt } from "@/lib/ha";
 import type { Printer } from "@/lib/types";
-import { ControlBar } from "./ControlBar";
-import { LightToggle } from "./LightToggle";
-import { ProgressRing } from "./ProgressRing";
-import { SpeedProfileSelect } from "./SpeedProfileSelect";
-import { Card } from "./ui";
 
 /** The control cockpit: print job name, progress ring, transport controls
  *  (desktop), and environment controls. */

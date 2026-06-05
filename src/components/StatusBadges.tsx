@@ -1,33 +1,132 @@
+import {
+	Camera,
+	CircleCheck,
+	DoorClosed,
+	RefreshCw,
+	TriangleAlert,
+	Wifi,
+} from "lucide-react";
+import { useState } from "react";
+import { Pill, type PillTone } from "@/components/Pill";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
 import { isMissing, num } from "@/lib/format";
 import { entityIdForRole } from "@/lib/gating";
 import { useEnt } from "@/lib/ha";
 import type { Printer } from "@/lib/types";
-import {
-	AlertIcon,
-	CameraIcon,
-	DoorIcon,
-	RefreshIcon,
-	WifiIcon,
-} from "./icons";
-import { Pill } from "./ui";
 
-/** Wi-Fi dBm -> coarse strength label. */
-function wifiLabel(state: unknown): string {
+type Entity = NonNullable<ReturnType<typeof useEnt>>;
+
+/** Wi-Fi dBm -> coarse strength label + tone (green/amber/red by strength). */
+function wifiStatus(state: unknown): { label: string; tone: PillTone } {
 	const dbm = num(state);
 	if (dbm === null) {
-		return "—";
+		return { label: "—", tone: "neutral" };
 	}
 	if (dbm >= -50) {
-		return "Excellent";
+		return { label: "Excellent", tone: "good" };
 	}
 	if (dbm >= -60) {
-		return "Good";
+		return { label: "Good", tone: "good" };
 	}
 	if (dbm >= -70) {
-		return "Fair";
+		return { label: "Fair", tone: "warn" };
 	}
-	return "Weak";
+	return { label: "Weak", tone: "bad" };
+}
+
+// Noise attributes that aren't useful in the error dialog.
+const SKIP_ATTRS = new Set([
+	"device_class",
+	"friendly_name",
+	"icon",
+	"attribution",
+	"supported_features",
+]);
+
+function ErrorDetails({ entity, isErr }: { entity: Entity; isErr: boolean }) {
+	const attrs = (entity.attributes ?? {}) as Record<string, unknown>;
+	const rows = Object.entries(attrs).filter(([key]) => !SKIP_ATTRS.has(key));
+
+	if (!isErr) {
+		return (
+			<div className="flex items-center gap-2 text-ink-300 text-sm">
+				<CircleCheck className="text-bambu-400 text-base" />
+				No active errors reported.
+			</div>
+		);
+	}
+
+	if (rows.length === 0) {
+		return (
+			<p className="text-ink-300 text-sm">
+				An error is active, but Home Assistant reported no further details.
+			</p>
+		);
+	}
+
+	return (
+		<dl className="space-y-2">
+			{rows.map(([key, value]) => (
+				<div
+					key={key}
+					className="rounded-lg border border-ink-800 bg-ink-850/60 px-3 py-2"
+				>
+					<dt className="text-[0.7rem] text-ink-400 uppercase tracking-wide">
+						{key}
+					</dt>
+					<dd className="break-words text-ink-100 text-sm">
+						{typeof value === "object" ? JSON.stringify(value) : String(value)}
+					</dd>
+				</div>
+			))}
+		</dl>
+	);
+}
+
+/** An always-visible diagnostic pill (HMS / print error): green when healthy,
+ *  red when a problem is active. Tapping opens a dialog with the error info. */
+function ErrorPill({
+	label,
+	title,
+	entity,
+}: {
+	label: string;
+	title: string;
+	entity: Entity;
+}) {
+	const [open, setOpen] = useState(false);
+	const unknown = isMissing(entity.state);
+	const isErr = entity.state === "on";
+	const tone: PillTone = unknown ? "neutral" : isErr ? "bad" : "good";
+	const status = unknown ? "—" : isErr ? "Error" : "OK";
+
+	return (
+		<>
+			<Pill
+				tone={tone}
+				onClick={() => setOpen(true)}
+				title={`${title} — details`}
+			>
+				{isErr ? <TriangleAlert /> : <CircleCheck />} {label} {status}
+			</Pill>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent className="max-w-md border-ink-800 bg-ink-900">
+					<DialogHeader>
+						<DialogTitle>{title}</DialogTitle>
+					</DialogHeader>
+					<div className="max-h-[70vh] overflow-y-auto">
+						<ErrorDetails entity={entity} isErr={isErr} />
+					</div>
+				</DialogContent>
+			</Dialog>
+		</>
+	);
 }
 
 /** Compact diagnostic pills: online, door, errors, wifi, firmware, timelapse. */
@@ -60,32 +159,33 @@ export function StatusBadges({ printer }: { printer: Printer }) {
 	if (door) {
 		const open = door.state === "on";
 		pills.push(
-			<Pill key="door" tone={open ? "warn" : "neutral"}>
-				<DoorIcon /> {open ? "Door Open" : "Closed"}
+			<Pill key="door" tone={open ? "warn" : "good"}>
+				<DoorClosed /> {open ? "Door Open" : "Closed"}
 			</Pill>,
 		);
 	}
 
-	if (hms?.state === "on") {
+	if (hms) {
 		pills.push(
-			<Pill key="hms" tone="bad">
-				<AlertIcon /> HMS Error
-			</Pill>,
+			<ErrorPill key="hms" label="HMS" title="HMS Errors" entity={hms} />,
 		);
 	}
 
-	if (printErr?.state === "on") {
+	if (printErr) {
 		pills.push(
-			<Pill key="perr" tone="bad">
-				<AlertIcon /> Print Error
-			</Pill>,
+			<ErrorPill
+				key="perr"
+				label="Print"
+				title="Print Error"
+				entity={printErr}
+			/>,
 		);
 	}
 
 	if (timelapse?.state === "on") {
 		pills.push(
 			<Pill key="timelapse" tone="active">
-				<CameraIcon /> Timelapse
+				<Camera /> Timelapse
 			</Pill>,
 		);
 	}
@@ -93,15 +193,16 @@ export function StatusBadges({ printer }: { printer: Printer }) {
 	if (firmware?.state === "on") {
 		pills.push(
 			<Pill key="fw" tone="warn">
-				<RefreshIcon /> Update
+				<RefreshCw /> Update
 			</Pill>,
 		);
 	}
 
 	if (wifi && !isMissing(wifi.state)) {
+		const { label, tone } = wifiStatus(wifi.state);
 		pills.push(
-			<Pill key="wifi" tone="neutral">
-				<WifiIcon /> {wifiLabel(wifi.state)}
+			<Pill key="wifi" tone={tone} title={`${num(wifi.state)} dBm`}>
+				<Wifi /> {label}
 			</Pill>,
 		);
 	}

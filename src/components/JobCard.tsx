@@ -1,9 +1,10 @@
+import { Disc3, Layers } from "lucide-react";
+import { Card, CardHeader } from "@/components/Card";
+import { Stat } from "@/components/Stat";
 import { isMissing, num, titleCase, withUnit } from "@/lib/format";
 import { entityIdForRole, printerHasRole } from "@/lib/gating";
 import { useEnt, useJoinHassUrl } from "@/lib/ha";
 import type { Printer } from "@/lib/types";
-import { LayersIcon, SpoolIcon } from "./icons";
-import { Card, CardHeader, Stat } from "./ui";
 
 /** ISO timestamp -> short local "Jun 4, 3:22 PM" (today omits the date). */
 function timestampShort(state: unknown): string {
@@ -77,7 +78,7 @@ export function JobCard({
 
 	return (
 		<Card className={className}>
-			<CardHeader icon={<LayersIcon />} title="Print Job" />
+			<CardHeader icon={<Layers />} title="Print Job" />
 			<div className="flex gap-3 px-4 pb-4">
 				{picture ? (
 					<img
@@ -87,7 +88,7 @@ export function JobCard({
 					/>
 				) : (
 					<div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-ink-800 bg-ink-950 text-2xl text-ink-600">
-						<SpoolIcon />
+						<Disc3 />
 					</div>
 				)}
 				<div className="grid min-w-0 flex-1 grid-cols-2 gap-2">

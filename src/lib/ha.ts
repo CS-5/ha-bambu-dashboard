@@ -48,6 +48,13 @@ export function useCallService() {
 	return useHass((s) => s.helpers.callService);
 }
 
+/** Raw home-assistant-js-websocket connection (for low-level commands like
+ *  WebRTC signaling that the hakit hooks don't expose). Null until connected. */
+export function useConnection() {
+	return useHass((s) => s.connection);
+}
+export type HaConnection = NonNullable<ReturnType<typeof useConnection>>;
+
 /** Whether HA is connected & ready (drives the offline overlay). */
 export function useReady() {
 	return useHass((s) => s.ready && s.connectionStatus === "connected");

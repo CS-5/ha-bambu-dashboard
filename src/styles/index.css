@@ -1,4 +1,10 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* The app is dark-only and ships `<html class="dark">`, so key shadcn's `dark:`
+   utilities off that class (Tailwind v4 otherwise ties `dark:` to the OS
+   prefers-color-scheme, which would make theming non-deterministic). */
+@custom-variant dark (&:is(.dark *));
 
 /* Bambu-inspired dark theme tokens. Custom colors become utilities, e.g.
    `bg-bambu-500`, `text-ink-300`, `border-panel-700`. The default Tailwind
@@ -25,6 +31,84 @@
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Bridge shadcn/ui's semantic slots onto the bambu/ink palette so generated
+   primitives (Button, Card, Dialog, Badge, Switch, …) theme themselves from
+   our dark tokens. `@theme inline` turns each semantic var into a utility
+   (bg-background, text-foreground, border-border, bg-primary, …). */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Dark-only: semantic slots map directly to the ink/bambu hexes (no light
+   :root + .dark override needed). */
+:root {
+  --radius: 0.75rem;
+  --background: var(--color-ink-950);
+  --foreground: var(--color-ink-100);
+  --card: var(--color-ink-900);
+  --card-foreground: var(--color-ink-100);
+  --popover: var(--color-ink-900);
+  --popover-foreground: var(--color-ink-100);
+  --primary: var(--color-bambu-600);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-ink-850);
+  --secondary-foreground: var(--color-ink-200);
+  --muted: var(--color-ink-850);
+  --muted-foreground: var(--color-ink-400);
+  --accent: var(--color-ink-800);
+  --accent-foreground: var(--color-ink-100);
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: var(--color-ink-800);
+  --input: var(--color-ink-700);
+  --ring: var(--color-bambu-500);
+  /* History-chart series + donut accents. */
+  --chart-1: #34e07f;
+  --chart-2: #22d3ee;
+  --chart-3: #f59e0b;
+  --chart-4: #a78bfa;
+  --chart-5: var(--color-ink-700);
+}
+
+/* Lucide icons render at a fixed 24px by default; size them to 1em so they
+   scale with the surrounding text (text-lg / text-4xl, …), and match the line
+   weight the dashboard was designed around. Kept in @layer base so explicit
+   size utilities (e.g. shadcn's `size-4`) still win over this default. */
+@layer base {
+	.lucide {
+		width: 1em;
+		height: 1em;
+		stroke-width: 1.8;
+	}
 }
 
 html,

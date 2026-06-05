@@ -1,9 +1,10 @@
+import { Fan } from "lucide-react";
+import { Card, CardHeader } from "@/components/Card";
+import { Stat } from "@/components/Stat";
 import { percent } from "@/lib/format";
 import { entityIdForRole, printerHasRole } from "@/lib/gating";
 import { useEnt } from "@/lib/ha";
 import type { EntityRole, Printer } from "@/lib/types";
-import { FanIcon } from "./icons";
-import { Card, CardHeader, Stat } from "./ui";
 
 const FANS: Array<{ label: string; role: EntityRole }> = [
 	{ label: "Part", role: "cooling_fan_speed" },
@@ -22,7 +23,7 @@ function FanTile({
 	role: EntityRole;
 }) {
 	const fan = useEnt(entityIdForRole(printer, role));
-	return <Stat icon={<FanIcon />} label={label} value={percent(fan?.state)} />;
+	return <Stat icon={<Fan />} label={label} value={percent(fan?.state)} />;
 }
 
 /** Read-only fan speeds (monitoring scope). */
@@ -40,7 +41,7 @@ export function FanCard({
 
 	return (
 		<Card className={className}>
-			<CardHeader icon={<FanIcon />} title="Fans" />
+			<CardHeader icon={<Fan />} title="Fans" />
 			<div className="grid grid-cols-2 gap-2.5 px-4 pb-4">
 				{fans.map((f) => (
 					<FanTile

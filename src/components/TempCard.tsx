@@ -1,9 +1,10 @@
+import { Thermometer } from "lucide-react";
+import { Card, CardHeader } from "@/components/Card";
+import { Stat } from "@/components/Stat";
 import { num } from "@/lib/format";
 import { entityIdForRole, printerHasRole } from "@/lib/gating";
 import { useEnt } from "@/lib/ha";
 import type { EntityRole, Printer } from "@/lib/types";
-import { ThermoIcon } from "./icons";
-import { Card, CardHeader, Stat } from "./ui";
 
 /** Round to a temperature display (whole degrees). */
 function temp(state: unknown): string {
@@ -31,7 +32,7 @@ function TempTile({
 
 	return (
 		<Stat
-			icon={<ThermoIcon />}
+			icon={<Thermometer />}
 			label={label}
 			value={temp(cur?.state)}
 			sub={sub}
@@ -98,7 +99,7 @@ export function TempCard({
 
 	return (
 		<Card className={className}>
-			<CardHeader icon={<ThermoIcon />} title="Temperatures" />
+			<CardHeader icon={<Thermometer />} title="Temperatures" />
 			<div className="grid grid-cols-2 gap-2.5 px-4 pb-4 sm:grid-cols-2">
 				{tiles.map((t) => (
 					<TempTile key={t.current} printer={printer} {...t} />

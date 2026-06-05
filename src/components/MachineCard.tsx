@@ -1,3 +1,6 @@
+import { Box, Clock } from "lucide-react";
+import { Card, CardHeader } from "@/components/Card";
+import { Stat } from "@/components/Stat";
 import {
 	durationFromHours,
 	isMissing,
@@ -7,8 +10,6 @@ import {
 import { entityIdForRole, printerHasRole } from "@/lib/gating";
 import { useEnt } from "@/lib/ha";
 import type { EntityRole, Printer } from "@/lib/types";
-import { ClockIcon, PrinterIcon } from "./icons";
-import { Card, CardHeader, Stat } from "./ui";
 
 function NozzleTile({
 	printer,
@@ -54,7 +55,7 @@ export function MachineCard({
 
 	return (
 		<Card className={className}>
-			<CardHeader icon={<PrinterIcon />} title="Machine" />
+			<CardHeader icon={<Box />} title="Machine" />
 			<div className="grid grid-cols-2 gap-2.5 px-4 pb-4">
 				{dual ? (
 					<>
@@ -81,7 +82,7 @@ export function MachineCard({
 				) : null}
 				{showLifetime && (
 					<Stat
-						icon={<ClockIcon />}
+						icon={<Clock />}
 						label="Total Prints"
 						value={durationFromHours(total?.state)}
 					/>

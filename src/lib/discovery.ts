@@ -2,8 +2,13 @@ import type {
 	DeviceRegistryEntry,
 	EntityRegistryDisplayEntry,
 } from "@hakit/core";
-import { AMS_TRAY_RE, EXTERNAL_SPOOL_RE, matchRole, objectId } from "./roles";
-import type { AmsTray, Printer, ResolvedEntity } from "./types";
+import {
+	AMS_TRAY_RE,
+	EXTERNAL_SPOOL_RE,
+	matchRole,
+	objectId,
+} from "@/lib/roles";
+import type { AmsTray, Printer, ResolvedEntity } from "@/lib/types";
 
 const BAMBU_PLATFORM = "bambu_lab";
 

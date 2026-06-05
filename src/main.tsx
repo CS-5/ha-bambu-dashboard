@@ -1,10 +1,10 @@
 import { HassConnect } from "@hakit/core";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App";
-import { ConnectionScreen } from "./components/ConnectionScreen";
-import { PrinterProvider } from "./context/printers";
-import "./styles/index.css";
+import App from "@/App";
+import { ConnectionScreen } from "@/components/ConnectionScreen";
+import { PrinterProvider } from "@/context/printers";
+import "@/styles/index.css";
 
 // In production the dashboard is served by Home Assistant, so the HA origin is
 // simply where the page is loaded from. For local dev, point VITE_HA_URL at your

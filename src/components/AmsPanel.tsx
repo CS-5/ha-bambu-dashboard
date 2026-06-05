@@ -1,10 +1,11 @@
+import { Disc3, Droplet, Thermometer } from "lucide-react";
+import { Card, CardHeader } from "@/components/Card";
+import { Pill } from "@/components/Pill";
 import { cn } from "@/lib/cn";
 import { isMissing, num } from "@/lib/format";
 import { entityIdForRole } from "@/lib/gating";
 import { useEnt } from "@/lib/ha";
 import type { Printer } from "@/lib/types";
-import { DropIcon, SpoolIcon, ThermoIcon } from "./icons";
-import { Card, CardHeader, Pill } from "./ui";
 
 /** Normalize an 8-digit (#RRGGBBAA) or 6-digit hex; returns null if transparent/empty. */
 function usableColor(color: unknown): string | null {
@@ -92,18 +93,18 @@ export function AmsPanel({
 	return (
 		<Card className={className}>
 			<CardHeader
-				icon={<SpoolIcon />}
+				icon={<Disc3 />}
 				title="Filament (AMS)"
 				action={
 					<div className="flex items-center gap-1.5">
 						{humidity && !isMissing(humidity.state) && (
 							<Pill tone="neutral">
-								<DropIcon /> {Math.round(num(humidity.state) ?? 0)}%
+								<Droplet /> {Math.round(num(humidity.state) ?? 0)}%
 							</Pill>
 						)}
 						{temperature && !isMissing(temperature.state) && (
 							<Pill tone="neutral">
-								<ThermoIcon /> {Math.round(num(temperature.state) ?? 0)}°
+								<Thermometer /> {Math.round(num(temperature.state) ?? 0)}°
 							</Pill>
 						)}
 						{isDrying && <Pill tone="warn">Drying</Pill>}

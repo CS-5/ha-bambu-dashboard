@@ -1,19 +1,19 @@
+import { Clock } from "lucide-react";
 import { useMemo, useState } from "react";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Card, CardHeader } from "@/components/Card";
 import {
-	CartesianGrid,
-	Line,
-	LineChart,
-	ResponsiveContainer,
-	Tooltip,
-	XAxis,
-	YAxis,
-} from "recharts";
-import { cn } from "@/lib/cn";
+	type ChartConfig,
+	ChartContainer,
+	ChartLegend,
+	ChartLegendContent,
+	ChartTooltip,
+	ChartTooltipContent,
+} from "@/components/ui/chart";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { entityIdForRole, printerHasRole } from "@/lib/gating";
 import { useHist } from "@/lib/ha";
 import type { EntityRole, Printer } from "@/lib/types";
-import { ClockIcon } from "./icons";
-import { Card, CardHeader } from "./ui";
 
 type Point = [number, number]; // [ms, value]
 
@@ -69,13 +69,6 @@ function fmtTime(t: number) {
 	});
 }
 
-const tooltipStyle = {
-	background: "#0f151b",
-	border: "1px solid #243140",
-	borderRadius: 12,
-	fontSize: 12,
-} as const;
-
 export default function HistoryChart({
 	printer,
 	className,
@@ -113,7 +106,7 @@ export default function HistoryChart({
 			c.push({
 				key: "nozzleA",
 				label: dualNozzle ? "Left Nozzle" : "Nozzle",
-				color: "#34e07f",
+				color: "var(--chart-1)",
 				hist: nozzleA,
 			});
 		}
@@ -121,18 +114,18 @@ export default function HistoryChart({
 			c.push({
 				key: "nozzleB",
 				label: "Right Nozzle",
-				color: "#22d3ee",
+				color: "var(--chart-2)",
 				hist: nozzleB,
 			});
 		}
 		if (printerHasRole(printer, "bed_temp")) {
-			c.push({ key: "bed", label: "Bed", color: "#f59e0b", hist: bed });
+			c.push({ key: "bed", label: "Bed", color: "var(--chart-3)", hist: bed });
 		}
 		if (printerHasRole(printer, "chamber_temp")) {
 			c.push({
 				key: "chamber",
 				label: "Chamber",
-				color: "#a78bfa",
+				color: "var(--chart-4)",
 				hist: chamber,
 			});
 		}
@@ -146,10 +139,14 @@ export default function HistoryChart({
 			),
 		[config],
 	);
-	const labelByKey = useMemo(
-		() => Object.fromEntries(config.map((s) => [s.key, s.label])),
-		[config],
-	);
+
+	const chartConfig = useMemo<ChartConfig>(() => {
+		const cfg: ChartConfig = {};
+		for (const s of config) {
+			cfg[s.key] = { label: s.label, color: s.color };
+		}
+		return cfg;
+	}, [config]);
 
 	const hasData = data.length > 1;
 	const loading = config.some((s) => s.hist.loading);
@@ -157,66 +154,75 @@ export default function HistoryChart({
 	return (
 		<Card className={className}>
 			<CardHeader
-				icon={<ClockIcon />}
+				icon={<Clock />}
 				title="Temperature History"
 				action={
-					<Segmented
+					<ToggleGroup
+						type="single"
 						value={String(hours)}
-						onChange={(v) => setHours(Number(v))}
-						options={WINDOWS.map((w) => ({
-							value: String(w.hours),
-							label: w.label,
-						}))}
-					/>
+						onValueChange={(v) => v && setHours(Number(v))}
+						spacing={1}
+						className="rounded-lg border border-ink-800 bg-ink-850/60 p-0.5"
+					>
+						{WINDOWS.map((w) => (
+							<ToggleGroupItem
+								key={w.hours}
+								value={String(w.hours)}
+								className="rounded-md px-2 py-1 font-semibold text-[0.7rem] text-ink-400 hover:text-ink-200 data-[state=on]:bg-bambu-600/80 data-[state=on]:text-white"
+							>
+								{w.label}
+							</ToggleGroupItem>
+						))}
+					</ToggleGroup>
 				}
 			/>
-			{/* legend */}
-			<div className="flex flex-wrap gap-x-4 gap-y-1 px-4 pb-1">
-				{config.map((s) => (
-					<span
-						key={s.key}
-						className="flex items-center gap-1.5 text-[0.7rem] text-ink-400"
-					>
-						<span
-							className="h-2 w-2 rounded-full"
-							style={{ backgroundColor: s.color }}
-						/>
-						{s.label}
-					</span>
-				))}
-			</div>
-			<div className="h-56 px-2 pb-3">
+			<div className="px-2 pb-3">
 				{hasData ? (
-					<ResponsiveContainer width="100%" height="100%">
+					<ChartContainer
+						config={chartConfig}
+						className="aspect-auto h-56 w-full"
+					>
 						<LineChart
 							data={data}
 							margin={{ top: 8, right: 12, bottom: 0, left: -16 }}
 						>
-							<CartesianGrid stroke="#1a242e" vertical={false} />
+							<CartesianGrid vertical={false} />
 							<XAxis
 								dataKey="t"
 								type="number"
 								domain={["dataMin", "dataMax"]}
 								scale="time"
 								tickFormatter={fmtTime}
-								stroke="#7e93a8"
 								fontSize={11}
 								minTickGap={40}
 							/>
-							<YAxis
-								stroke="#7e93a8"
-								fontSize={11}
-								width={40}
-								unit="°"
-								domain={[0, "auto"]}
+							<YAxis fontSize={11} width={40} unit="°" domain={[0, "auto"]} />
+							<ChartTooltip
+								content={
+									<ChartTooltipContent
+										labelFormatter={(label) => fmtTime(Number(label))}
+										formatter={(value, name, item) => (
+											<>
+												<span
+													className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+													style={{ backgroundColor: item.color }}
+												/>
+												<span className="flex flex-1 justify-between gap-3 leading-none">
+													<span className="text-muted-foreground">
+														{chartConfig[String(name)]?.label ?? String(name)}
+													</span>
+													<span className="font-medium text-foreground tabular-nums">
+														{Math.round(Number(value))}°
+													</span>
+												</span>
+											</>
+										)}
+									/>
+								}
 							/>
-							<Tooltip
-								contentStyle={tooltipStyle}
-								labelFormatter={(t) => fmtTime(Number(t))}
-								formatter={(value, name) => [
-									`${Math.round(Number(value))}°`,
-									labelByKey[String(name)] ?? String(name),
-								]}
+							<ChartLegend
+								verticalAlign="top"
+								content={<ChartLegendContent />}
 							/>
 							{config.map((s) => (
 								<Line
@@ -224,7 +230,7 @@ export default function HistoryChart({
 									type="monotone"
 									dataKey={s.key}
 									name={s.key}
-									stroke={s.color}
+									stroke={`var(--color-${s.key})`}
 									strokeWidth={2}
 									dot={false}
 									isAnimationActive={false}
@@ -232,43 +238,13 @@ export default function HistoryChart({
 								/>
 							))}
 						</LineChart>
-					</ResponsiveContainer>
+					</ChartContainer>
 				) : (
-					<div className="flex h-full items-center justify-center text-ink-400 text-sm">
+					<div className="flex h-56 items-center justify-center text-ink-400 text-sm">
 						{loading ? "Loading history…" : "No history yet"}
 					</div>
 				)}
 			</div>
 		</Card>
-	);
-}
-
-function Segmented({
-	value,
-	onChange,
-	options,
-}: {
-	value: string;
-	onChange: (v: string) => void;
-	options: { value: string; label: string }[];
-}) {
-	return (
-		<div className="flex gap-0.5 rounded-lg border border-ink-800 bg-ink-850/60 p-0.5">
-			{options.map((o) => (
-				<button
-					key={o.value}
-					type="button"
-					onClick={() => onChange(o.value)}
-					className={cn(
-						"rounded-md px-2 py-1 font-semibold text-[0.7rem] transition-colors",
-						value === o.value
-							? "bg-bambu-600/80 text-white"
-							: "text-ink-400 hover:text-ink-200",
-					)}
-				>
-					{o.label}
-				</button>
-			))}
-		</div>
 	);
 }

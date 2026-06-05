@@ -1,3 +1,6 @@
+import { Clock, Layers } from "lucide-react";
+import { Cell, Label, Pie, PieChart } from "recharts";
+import { ChartContainer } from "@/components/ui/chart";
 import { cn } from "@/lib/cn";
 import {
 	durationFromHours,
@@ -9,12 +12,6 @@ import {
 import { entityIdForRole, printerHasRole } from "@/lib/gating";
 import { useEnt } from "@/lib/ha";
 import type { Printer } from "@/lib/types";
-import { ClockIcon, LayersIcon } from "./icons";
-
-const SIZE = 168;
-const STROKE = 12;
-const R = (SIZE - STROKE) / 2;
-const CIRC = 2 * Math.PI * R;
 
 /** Clamp a 0–100 progress number for the ring. */
 function clampPct(state: unknown): number {
@@ -45,7 +42,8 @@ function layers(current: unknown, total: unknown): string {
 	return `${c ?? "—"} / ${t ?? "—"}`;
 }
 
-/** Central print-progress ring with layer + time-remaining readouts. */
+/** Central print-progress ring (a donut chart with a centered readout) plus
+ *  layer + time-remaining tiles. */
 export function ProgressRing({ printer }: { printer: Printer }) {
 	const progress = useEnt(entityIdForRole(printer, "print_progress"));
 	const curLayer = useEnt(entityIdForRole(printer, "current_layer"));
@@ -55,7 +53,12 @@ export function ProgressRing({ printer }: { printer: Printer }) {
 	const stage = useEnt(entityIdForRole(printer, "current_stage"));
 
 	const pct = clampPct(progress?.state);
-	const offset = CIRC * (1 - pct / 100);
+	const pctText =
+		progress && !isMissing(progress.state) ? percent(progress.state) : "—";
+	const ringData = [
+		{ name: "done", value: pct },
+		{ name: "rest", value: 100 - pct },
+	];
 
 	const statusLabel = !isMissing(status?.state)
 		? titleCase(status?.state)
@@ -73,46 +76,62 @@ export function ProgressRing({ printer }: { printer: Printer }) {
 
 	return (
 		<div className="flex flex-col items-center gap-4">
-			<div className="relative" style={{ width: SIZE, height: SIZE }}>
-				<svg width={SIZE} height={SIZE} className="-rotate-90">
-					<circle
-						cx={SIZE / 2}
-						cy={SIZE / 2}
-						r={R}
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={STROKE}
-						className="text-ink-800"
-					/>
-					<circle
-						cx={SIZE / 2}
-						cy={SIZE / 2}
-						r={R}
-						fill="none"
-						stroke="currentColor"
-						strokeWidth={STROKE}
-						strokeLinecap="round"
-						strokeDasharray={CIRC}
-						strokeDashoffset={offset}
-						className="text-bambu-500 transition-[stroke-dashoffset] duration-700 ease-out"
-					/>
-				</svg>
-				<div className="absolute inset-0 flex flex-col items-center justify-center">
-					<span className="font-bold text-4xl text-ink-100 tabular-nums">
-						{progress && !isMissing(progress.state)
-							? percent(progress.state)
-							: "—"}
-					</span>
-					<span
-						className={cn(
-							"mt-0.5 font-semibold text-xs uppercase tracking-wider",
-							isPrinting ? "text-bambu-400" : "text-ink-400",
-						)}
+			<ChartContainer
+				config={{ done: { label: "Progress" } }}
+				className="mx-auto aspect-square h-[168px]"
+			>
+				<PieChart>
+					<Pie
+						data={ringData}
+						dataKey="value"
+						nameKey="name"
+						innerRadius={66}
+						outerRadius={82}
+						startAngle={90}
+						endAngle={-270}
+						cornerRadius={8}
+						strokeWidth={0}
+						isAnimationActive={false}
 					>
-						{statusLabel}
-					</span>
-				</div>
-			</div>
+						<Cell fill="var(--color-bambu-500)" />
+						<Cell fill="var(--color-ink-800)" />
+						<Label
+							content={({ viewBox }) => {
+								if (!viewBox || !("cx" in viewBox)) {
+									return null;
+								}
+								const { cx, cy } = viewBox;
+								return (
+									<text
+										x={cx}
+										y={cy}
+										textAnchor="middle"
+										dominantBaseline="middle"
+									>
+										<tspan
+											x={cx}
+											y={cy}
+											className="fill-ink-100 font-bold text-4xl tabular-nums"
+										>
+											{pctText}
+										</tspan>
+										<tspan
+											x={cx}
+											y={(cy ?? 0) + 26}
+											className={cn(
+												"font-semibold text-xs uppercase tracking-wider",
+												isPrinting ? "fill-bambu-400" : "fill-ink-400",
+											)}
+										>
+											{statusLabel}
+										</tspan>
+									</text>
+								);
+							}}
+						/>
+					</Pie>
+				</PieChart>
+			</ChartContainer>
 
 			{stageLabel && (
 				<div
@@ -137,14 +156,14 @@ export function ProgressRing({ printer }: { printer: Printer }) {
 				{(printerHasRole(printer, "current_layer") ||
 					printerHasRole(printer, "total_layers")) && (
 					<Readout
-						icon={<LayersIcon />}
+						icon={<Layers />}
 						label="Layer"
 						value={layers(curLayer?.state, totLayers?.state)}
 					/>
 				)}
 				{printerHasRole(printer, "remaining_time") && (
 					<Readout
-						icon={<ClockIcon />}
+						icon={<Clock />}
 						label="Remaining"
 						value={remainingStr}
 						sub={eta ? `~${eta}` : undefined}

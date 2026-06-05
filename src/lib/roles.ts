@@ -1,4 +1,4 @@
-import type { EntityRole } from "./types";
+import type { EntityRole } from "@/lib/types";
 
 /** A rule maps a logical role to (HA domain + entity_id suffix). The suffix is
  *  matched against the entity's object_id (entity_id minus its domain). When
